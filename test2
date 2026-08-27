@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product Data Architecture — Options Appraisal v0.5</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  themeVariables: {
+    fontSize: '13px',
+    primaryColor: '#1e3d59',
+    primaryTextColor: '#ffffff',
+    primaryBorderColor: '#152b40',
+    lineColor: '#5e6b7d',
+    edgeLabelBackground: '#ffffff'
+  },
+  flowchart: { curve: 'basis', padding: 20 }
+});
+</script>
+<style>
+:root{
+  --ink:#172033;--muted:#5e6b7d;--paper:#fff;--canvas:#eef2f6;
+  --line:#d7dee8;--blue:#2357a6;--cyan:#0d8190;--soft:#f4f7fb;
+  --warn:#fff5d9;--good:#e9f7ef;--danger:#fff0f0;--purple:#f2effb;
+  --radius:14px;--shadow:0 10px 30px rgba(20,38,66,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.65 "Segoe UI",Arial,sans-serif}
+a{color:var(--blue)}
+.page{max-width:1200px;margin:0 auto;padding:0 20px 80px}
+
+.cover{background:linear-gradient(135deg,#0d1b2a,#1e3d59 55%,#0d6e6e);color:#fff;
+  padding:56px clamp(24px,6vw,72px);border-radius:0 0 24px 24px;margin-bottom:8px}
+.cover .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#9ee8ee;margin-bottom:10px}
+.cover h1{font-size:clamp(26px,3.8vw,44px);line-height:1.08;margin:0 0 14px;letter-spacing:-.03em}
+.cover p{font-size:15.5px;color:#dce7f3;max-width:840px;margin:0 0 6px}
+.cover .status{margin-top:16px;font-size:12.5px;color:#bcd6e6}
+.metrics{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.metric{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  padding:10px 16px;border-radius:10px;min-width:110px}
+.metric strong{display:block;font-size:22px;font-weight:800}
+.metric span{font-size:11px;color:#c8dff0}
+
+section.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:clamp(22px,4vw,46px);margin:22px 0}
+section.card>h2{font-size:25px;color:#173c6d;margin:2px 0 12px;
+  border-bottom:1px solid var(--line);padding-bottom:12px;line-height:1.22}
+.kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:750;margin-bottom:4px}
+
+.terms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:18px 0}
+.term-card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--soft)}
+.term-card .term-name{font-size:12.5px;font-weight:800;color:#173c6d;margin-bottom:5px}
+.term-card .term-body{font-size:13px;color:var(--ink);line-height:1.55}
+.t-a{border-left:4px solid #1565c0}
+.t-b{border-left:4px solid #e64a19}
+.t-platform{border-left:4px solid #37474f}
+.t-dso{border-left:4px solid #1b5e20}
+.t-gap{border-left:4px solid #c0392b}
+
+.platform-box{border:2px solid #37474f;border-radius:12px;padding:16px 20px;margin:18px 0;
+  background:linear-gradient(135deg,#f8f9fa,#eceff1)}
+.platform-box h4{margin:0 0 10px;color:#1b3a4b;font-size:14px}
+.platform-layers{display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.platform-layer{flex:1;padding:12px 14px;font-size:12.5px}
+.platform-layer h5{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.platform-layer p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.5}
+.platform-layer.b{background:#fbe9e7}.platform-layer.b h5{color:#bf360c}
+.platform-layer.s{background:#eceff1;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.platform-layer.s h5{color:#37474f}
+.platform-layer.g{background:#fff8e1}.platform-layer.g h5{color:#e65100}
+
+.phase-header{border-radius:12px;padding:20px 28px;margin:36px 0 6px;color:#fff}
+.phase-header h2{margin:0 0 4px;font-size:21px}
+.phase-header p{margin:0;font-size:13.5px;opacity:.88}
+.phase-header.as-is{background:linear-gradient(90deg,#37474f,#546e7a)}
+.phase-header.ao1{background:linear-gradient(90deg,#1565c0,#1976d2)}
+.phase-header.ao2{background:linear-gradient(90deg,#1b5e20,#2e7d32)}
+.phase-header.ao3{background:linear-gradient(90deg,#4a148c,#7b1fa2)}
+.phase-header.trans{background:linear-gradient(90deg,#bf360c,#e64a19)}
+
+.badge{border-radius:999px;padding:3px 12px;font-size:11px;font-weight:800;display:inline-block;margin-bottom:8px}
+.badge.ao1{background:#e3f2fd;color:#0d47a1}
+.badge.ao2{background:#e8f5e9;color:#1b5e20}
+.badge.ao3{background:#f3e5f5;color:#4a148c}
+.badge.asis{background:#eceff1;color:#37474f}
+.badge.trans{background:#fbe9e7;color:#bf360c}
+
+.option-meta{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 22px}
+.option-meta span{background:var(--soft);border:1px solid var(--line);border-radius:8px;
+  padding:5px 12px;font-size:12.5px;color:var(--muted);font-weight:600}
+
+.diagram-wrap{background:#fafcff;border:1px solid var(--line);border-radius:12px;
+  padding:28px 12px;margin:18px 0 26px;overflow:auto;text-align:center;min-height:160px}
+.diagram-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);font-weight:700;margin-bottom:12px;text-align:left}
+
+.table-wrap{overflow:auto;border-radius:10px;margin:12px 0 22px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:9px 12px;vertical-align:top;text-align:left}
+th{background:#eaf0f8;color:#193d6d;font-weight:750}
+tr:nth-child(even) td{background:#fafbfd}
+.pro{color:#1a7a3a;font-weight:650}
+.con{color:#a11d1d;font-weight:650}
+
+.callout{background:var(--soft);border-left:4px solid var(--cyan);padding:13px 16px;margin:14px 0;border-radius:6px;font-size:13.5px}
+.callout.warn{background:var(--warn);border-left-color:#d79b1e}
+.callout.danger{background:var(--danger);border-left-color:#c0392b}
+.callout.good{background:var(--good);border-left-color:#27ae60}
+.callout.purple{background:var(--purple);border-left-color:#7b1fa2}
+
+code{font-family:Consolas,monospace;background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
+
+.register-row.confirmed td:first-child{border-left:3px solid #27ae60}
+.register-row.assumption td:first-child{border-left:3px solid #e67e22}
+.register-row.decision td:first-child{border-left:3px solid #c0392b}
+.tag{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap}
+.tag.c{background:#e8f5e9;color:#1b5e20}
+.tag.a{background:#fff5d9;color:#7a4f00}
+.tag.d{background:#fdeaea;color:#8c1515}
+
+.comp-wrap{overflow:auto;margin:16px 0}
+.comp-wrap table{min-width:980px}
+.cell-good{background:#e9f7ef;color:#155724;text-align:center;font-weight:700}
+.cell-warn{background:#fff5d9;color:#7a4f00;text-align:center;font-weight:700}
+.cell-bad{background:#fff0f0;color:#7b1212;text-align:center;font-weight:700}
+.cell-na{background:#f8f9fa;color:#6c757d;text-align:center}
+
+.v5-box{background:#fff3e0;border:2px solid #f0c040;border-radius:12px;padding:18px 24px;margin:16px 0}
+.v5-box h3{margin:0 0 10px;color:#7a4f00;font-size:15px}
+.v5-box ul{margin:0;padding-left:18px;font-size:13.5px}
+.v5-box li{margin:5px 0}
+
+.timeline-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:20px 0;
+  border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tl-phase{padding:16px 18px;border-right:1px solid var(--line)}
+.tl-phase:last-child{border-right:none}
+.tl-phase h4{margin:0 0 6px;font-size:13px;font-weight:750}
+.tl-phase p{margin:0;font-size:12px;color:var(--muted)}
+.tl-phase.p1{background:#e3f2fd}.tl-phase.p1 h4{color:#0d47a1}
+.tl-phase.p2{background:#e8f5e9}.tl-phase.p2 h4{color:#1b5e20}
+.tl-phase.p3{background:#e8f5e9}.tl-phase.p3 h4{color:#1b5e20}
+.tl-phase.p4{background:#f3e5f5}.tl-phase.p4 h4{color:#4a148c}
+
+.exit-box{background:#fff8e1;border:1px solid #ffe082;border-radius:9px;
+  padding:12px 16px;margin:14px 0;font-size:13px}
+.exit-box strong{color:#7a4f00}
+
+.ws-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:18px 0}
+.ws-card{border-radius:10px;padding:16px 18px;border:1px solid var(--line)}
+.ws-card.fast{border-top:4px solid #1565c0;background:#e3f2fd}
+.ws-card.mid{border-top:4px solid #1b5e20;background:#e8f5e9}
+.ws-card h4{margin:0 0 8px;font-size:14px}
+.ws-card.fast h4{color:#0d47a1}
+.ws-card.mid h4{color:#1b5e20}
+.ws-card p{margin:0;font-size:13px;color:var(--ink)}
+.ws-card .ws-meta{font-size:11.5px;color:var(--muted);margin-top:8px}
+
+.sh{font-size:17px;color:#205b86;margin:24px 0 8px;font-weight:700}
+.section-divider{border:none;border-top:2px solid var(--line);margin:40px 0}
+
+@media(max-width:780px){
+  .terms-grid,.ws-grid{grid-template-columns:1fr}
+  .timeline-strip{grid-template-columns:1fr 1fr}
+  .platform-layers{flex-direction:column}
+  .platform-layer.s{border-left:none;border-right:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .page{padding:0 10px 60px}
+  .cover{padding:40px 20px}
+}
+@media print{
+  body{background:#fff}
+  .cover,.phase-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover{border-radius:0}
+  section.card{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- COVER — SANITISED SHAREABLE EDITION -->
+
+
+<!-- PLATFORM CONTEXT + KEY TERMS -->
+<section class="card" id="context">
+  <div class="kicker">Platform context and key terms — read first</div>
+  <h2>Analytics Platform, source definitions</h2>
+
+  <p>Analytics Platform is the organisation's Data Processing Platform medallion analytical data lake operating a Bronze (raw ingest) → Silver (conform) → Gold (analytical serving) pipeline. All options in this document describe work that lands in, transforms within, or is served from Analytics Platform's medallion layers.</p>
+
+  <div class="platform-box">
+    <h4>Analytics Platform medallion layer structure — confirmed current state</h4>
+    <div class="platform-layers">
+      <div class="platform-layer b">
+        <h5>&#129683; Bronze — Raw ingest</h5>
+        <p>Immutable managed tables. Schema-versioned. Retained for history replay.<br><br>
+        <strong>Currently in Bronze:</strong> Enterprise Resource Platform / Product Lifecycle Platform buying and merchandising ingest. Product Information Platform product attributes and category hierarchy ingest. Both pipelines complete.</p>
+      </div>
+      <div class="platform-layer s">
+        <h5>&#9889; Silver — Conform</h5>
+        <p>Cleansed, canonical, quality-assured managed tables. Platform Data Catalogue lineage.<br><br>
+        <strong>Currently in Silver:</strong> Enterprise Resource Platform / Product Lifecycle Platform buy-side data (fully governed). Product Information Platform product attributes via Product Content API pathway. Product Information Platform category hierarchy via Category API pathway.<br><br>
+        <strong>Not in Silver:</strong> Price domain, Inventory, Promotions, Review data, Specialist Product Domain — aggregation-service-derived operational domains only available via Document Database and Relational Database.</p>
+      </div>
+      <div class="platform-layer g">
+        <h5>&#127775; Gold — Analytics</h5>
+        <p>DS-optimised outputs with consumer contracts.<br><br>
+        <strong>Currently in Gold:</strong> Enterprise Resource Platform / Product Lifecycle Platform buy-side analytical tables. DS squads consume these.<br><br>
+        <strong>Not in Gold:</strong> Product Information Platform product attributes and hierarchy — available in Silver but never promoted to Gold. DS squads cannot consume Product Information Platform data from Analytics Platform Gold today despite it existing in Silver.<br><br>
+        <strong>Gap:</strong> No Consumer Analytics Data Product unified product Gold layer exists. This programme creates it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sh">Source and term definitions</div>
+  <div class="terms-grid">
+    <div class="term-card t-a">
+      <div class="term-name">Source A — Analytics Platform-governed product data</div>
+      <div class="term-body">Enterprise Resource Platform / Product Lifecycle Platform buy-side data (Bronze → Silver → Gold, fully governed) and Product Information Platform product attributes and hierarchy (Bronze → Silver, governed but NOT yet promoted to Gold). Source A is richer than previously described — it includes both buy-side structure and Product Information Platform product content in Silver.</div>
+    </div>
+    <div class="term-card t-b">
+      <div class="term-name">Source B — aggregation-service-derived operational domains not in Analytics Platform</div>
+      <div class="term-body">The operational domains aggregated by the Product Aggregation Service that have no Analytics Platform representation: price, inventory/stock, promotions, review data and a specialist product domain. These flow from Product Aggregation Service to Document Database (Consumer Teams A and B) and Relational Database with time-series extension (Consumer Team C) only. Sourcing these into Analytics Platform is the AO-2 ingestion programme.</div>
+    </div>
+    <div class="term-card t-gap">
+      <div class="term-name">The Product Information Platform Gold promotion gap</div>
+      <div class="term-body">Product Information Platform product attributes and hierarchy are in Analytics Platform Silver but have never been promoted to a governed Gold analytical layer. DS squads cannot consume Product Information Platform data from Analytics Platform Gold. They may therefore be consuming Product Information Platform-derived data from Document Database instead, unaware it is available in Analytics Platform Silver. Resolving this is Workstream 1 of AO-1 — no new ingestion required.</div>
+    </div>
+    <div class="term-card t-gap">
+      <div class="term-name">The DS consumption split (undocumented)</div>
+      <div class="term-body">DS squads consume from both Analytics Platform Gold (Enterprise Resource Platform / Product Lifecycle Platform tables) and their aggregation-service-fed stores (Document Database for Consumer Teams A and B, Relational Database for Consumer Team C). The exact field-level split — which features come from Analytics Platform and which from Product Aggregation Service stores — is not documented. Q1 must surface this as part of the field coverage analysis.</div>
+    </div>
+    <div class="term-card t-dso">
+      <div class="term-name">Consumer Analytics Data Product and Consumer Analytics Optimised</div>
+      <div class="term-body">Consumer Analytics Data Product is the new Consumer Analytics-optimised analytical layer inside Analytics Platform Gold. Consumer Analytics Optimised is the physical Gold-layer managed table within it, assembling governed Source A Silver data (Enterprise Resource Platform / Product Lifecycle Platform + Product Information Platform) and, later, Source B domain feeds. It does not yet exist — this programme creates it.</div>
+    </div>
+    <div class="term-card t-platform">
+      <div class="term-name">Analytics Platform to Source Crosswalk</div>
+      <div class="term-body">A Silver or Gold-layer managed table mapping Analytics Platform canonical Article ID to source system identifiers across Document Database, Relational Database and Product Aggregation Service. Resolves the leading-zero and identifier inconsistency problem confirmed in the field validation exercise.</div>
+    </div>
+    <div class="term-card t-dso">
+      <div class="term-name">Compatibility View</div>
+      <div class="term-body">A Gold-layer managed view preserving the field shape DS squads currently expect from their Document Database and Relational Database stores. Enables squad migration without immediate model pipeline rewrites. Carries a mandatory exit date — not a permanent contract.</div>
+    </div>
+    <div class="term-card t-b">
+      <div class="term-name">Product Aggregation Service</div>
+      <div class="term-body">An aggregation interface combining multiple upstream APIs, including product content, category, stock, price, offers, reviews and a specialist product feed. It feeds a Document Database through event streaming and batch processing for Consumer Teams A and B, and a Relational Database with a time-series extension for Consumer Team C. It also populates a Search Platform. Product Aggregation Service is not authoritative for any single domain.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="card" id="roadmap">
+  <div class="kicker">Roadmap overview</div>
+  <h2>Four-phase delivery sequence</h2>
+
+  <div class="timeline-strip">
+    <div class="tl-phase p1">
+      <h4>Phase 1 &nbsp;·&nbsp; 0–6 weeks</h4>
+      <p>Profile required fields against Analytics Platform Gold, Silver and source systems. Document DS squad consumption split. Answer Q1–Q4. No architecture committed before this completes.</p>
+    </div>
+    <div class="tl-phase p2">
+      <h4>Phase 2 &nbsp;·&nbsp; 6–14 weeks</h4>
+      <p>AO-1: Promote Product Information Platform and Enterprise Resource Platform / Product Lifecycle Platform Silver → Consumer Analytics Data Product Gold. Add Crosswalk and Compatibility Views. Source B bootstrap for fields absent from Analytics Platform entirely.</p>
+    </div>
+    <div class="tl-phase p3">
+      <h4>Phase 3 &nbsp;·&nbsp; 3–9 months</h4>
+      <p>AO-2: Direct bulk feeds from Pricing, Inventory, Promotions, Reviews into Analytics Platform Bronze → Silver → Gold. Retire Source B bootstrap. Migrate DS consumers to output ports.</p>
+    </div>
+    <div class="tl-phase p4">
+      <h4>Phase 4 &nbsp;·&nbsp; 9–18 months</h4>
+      <p>AO-3: Selective CDC into Bronze only where Q4 confirms a sub-daily freshness requirement. Silver batch always retained as reconciliation baseline.</p>
+    </div>
+  </div>
+
+  <div class="diagram-wrap" style="margin-top:22px">
+    <div class="diagram-label">Delivery sequence</div>
+    <div class="mermaid">
+flowchart LR
+    A["Phase 1 — 0 to 6 wks
+Profile Analytics Platform Gold and Silver
+vs required fields
+Document DS consumption split"]
+    B["Phase 2
+AO-1 — Consumer Analytics Data Product Gold
+Product Information Platform and Enterprise Resource Platform Silver to Gold
+Source B bootstrap for gaps"]
+    C["Phase 3 — 3 to 9 months
+AO-2 — Direct domain feeds
+Pricing Inventory Promotions Reviews
+Bronze to Silver to Gold"]
+    D["Phase 4 — 4 to 9 months
+Migrate DS consumers to output ports
+Retire bootstrap and compatibility views"]
+    E["Phase 5 — 9 to 18 months
+AO-3 — Selective CDC into Bronze
+Only where freshness confirmed"]
+    A --> B --> C --> D --> E
+    style A fill:#1565c0,stroke:#0d47a1,color:#fff
+    style B fill:#1565c0,stroke:#0d47a1,color:#fff
+    style C fill:#1b5e20,stroke:#155a20,color:#fff
+    style D fill:#1b5e20,stroke:#155a20,color:#fff
+    style E fill:#4a148c,stroke:#38006b,color:#fff
+    </div>
+  </div>
+</section>
+
+<!-- DISCOVERY -->
+<section class="card" id="discovery">
+  <div class="kicker">Prerequisite — Phase 1</div>
+  <h2>Four questions before any ingestion architecture is committed</h2>
+
+  <div class="callout danger">
+    <strong>Q1 now requires three buckets, not one.</strong> Previous versions asked only "which fields exist in Analytics Platform?" v0.5 corrects this. The field coverage analysis must distinguish: fields already in Analytics Platform Gold (immediately consumable with no new work), fields in Analytics Platform Silver but not Gold (Product Information Platform — a promotion gap, internal work only), and fields absent from Analytics Platform entirely (Source B — requires new Bronze ingestion). The bucket a field falls into determines its entire delivery path, effort, and team dependency.
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-label">Q1 three-bucket structure and the delivery path each bucket determines</div>
+    <div class="mermaid">
+flowchart TD
+    Q1["Q1 — Field coverage analysis
+Profile all required DS fields against Analytics Platform Gold and Silver"]
+    B1["Bucket 1
+In Analytics Platform Gold
+Enterprise Resource Platform / Product Lifecycle Platform analytical tables"]
+    B2["Bucket 2
+In Analytics Platform Silver but NOT Gold
+Product Information Platform attributes and hierarchy"]
+    B3["Bucket 3
+Absent from Analytics Platform entirely
+Pricing Inventory Promotions Reviews Specialist Product Domain"]
+    P1["AO-1 Workstream 1a
+Surface directly into Consumer Analytics Data Product Gold
+No new work — just expose"]
+    P2["AO-1 Workstream 1b
+Promote Silver to Gold
+Internal Analytics Platform work
+No external dependency"]
+    P3["AO-1 Workstream 2
+Source B bootstrap
+New aggregation-service-sourced Bronze ingest
+time-boxed — retire via AO-2"]
+    Q1 --> B1 & B2 & B3
+    B1 --> P1
+    B2 --> P2
+    B3 --> P3
+    style B1 fill:#1b5e20,stroke:#155a20,color:#fff
+    style B2 fill:#1565c0,stroke:#0d47a1,color:#fff
+    style B3 fill:#c0392b,stroke:#a93226,color:#fff
+    style P1 fill:#1b5e20,stroke:#155a20,color:#fff
+    style P2 fill:#1565c0,stroke:#0d47a1,color:#fff
+    style P3 fill:#e64a19,stroke:#bf360c,color:#fff
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:5%">#</th><th style="width:30%">Question</th><th style="width:35%">How to answer it</th><th style="width:15%">Output</th><th style="width:15%">Confidence without it</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Q1</strong></td>
+          <td>Which of the required DS fields fall into each of three buckets: in Analytics Platform Gold already; in Analytics Platform Silver but not Gold; absent from Analytics Platform entirely? Also: what does each DS squad currently consume from Analytics Platform Gold vs from their Product Aggregation Service store?</td>
+          <td>Field-by-field profile against Analytics Platform Gold and Silver schemas. Cross-reference against DS squad model feature catalogues (if documented) to establish the current Analytics Platform vs Product Aggregation Service consumption split. Executable within Analytics Platform by one data engineer — no external dependency.</td>
+          <td>Three-bucket field map plus DS consumption split. Defines the exact scope of every subsequent workstream.</td>
+          <td><span class="tag d">Low — the delivery path, effort and team dependency differ completely across the three buckets. Without Q1, every estimate in this document is a guess.</span></td>
+        </tr>
+        <tr>
+          <td><strong>Q2</strong></td>
+          <td>For Bucket 3 fields (absent from Analytics Platform entirely), which system is the authoritative source — not the nearest aggregator (Product Aggregation Service)?</td>
+          <td>Source authority register workshop with Pricing, Inventory, Promotions and Reviews domain owners. Map each absent field to a named owning system and team.</td>
+          <td>Source authority register. Prevents Product Aggregation Service being selected as the default Bronze source for fields that should come from the authoritative operational system directly.</td>
+          <td><span class="tag d">Low — without this, Source B bootstrap defaults to Product Aggregation Service for all Bucket 3 fields permanently.</span></td>
+        </tr>
+        <tr>
+          <td><strong>Q3</strong></td>
+          <td>What bulk extract or CDC interface does each authoritative Bucket 3 domain system officially support for Bronze ingestion into Analytics Platform?</td>
+          <td>Engagement with Pricing, Inventory, Promotions and Reviews platform teams. Ask: does a bulk export exist? Is there a CDC stream? What are the contractual terms and SLAs for Analytics Platform as a consumer?</td>
+          <td>Interface inventory per domain. Determines AO-2 delivery sequencing and which domains need a Product Aggregation Service bridge in the interim.</td>
+          <td><span class="tag a">Medium — Bucket 3 domain interfaces for direct Analytics Platform ingestion are unvalidated.</span></td>
+        </tr>
+        <tr>
+          <td><strong>Q4</strong></td>
+          <td>What freshness does each DS use case require per attribute — confirmed with a named business owner?</td>
+          <td>DS squad leads confirm per use case in writing. Distinguish: daily batch sufficient; sub-daily required. Named business owner required for any sub-daily claim.</td>
+          <td>Freshness register. Gates all AO-3 CDC decisions. Current DS requirements appear batch-oriented — no sub-daily requirement has been documented.</td>
+          <td><span class="tag d">Low — AO-3 must not be built without this evidence.</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- AS-IS -->
+<div class="phase-header as-is">
+  <h2>&#128203; Current State — As-Is</h2>
+  <p>Product Aggregation Service aggregates multiple upstream APIs · DS squads consume from both Analytics Platform Gold and aggregation-service-fed stores · Product Information Platform sits in Silver unused by squads · No Consumer Analytics Data Product Gold layer exists</p>
+</div>
+
+<section class="card" id="asis">
+  <span class="badge asis">As-Is · Confirmed architecture</span>
+  <h2>Current-state logical data flow</h2>
+
+  <div class="diagram-wrap">
+    <div class="diagram-label">Current-state logical data flow — confirmed v0.5</div>
+    <div class="mermaid">
+flowchart LR
+    subgraph UPSTREAM["Upstream source systems"]
+        PIP["Product Information Platform
+product content
+and attributes"]
+        ERP["Enterprise Resource Platform / Product Lifecycle Platform
+buying and
+merchandising"]
+        INV["Stock API"]
+        PRICE["Price API"]
+        PROMO["Offers API"]
+        REV["Review API"]
+        WINE["Specialist Product API"]
+    end
+
+    subgraph AGG_LAYER["Product Aggregation Service — aggregates multiple APIs"]
+        EPA["Product Content API
+Product Information Platform-derived"]
+        NAV["Category API
+Product Information Platform-derived"]
+        AGG["Product Aggregation Service"]
+    end
+
+    subgraph AP["Analytics Platform — Data Processing Platform medallion data lake"]
+        BRZ["Bronze
+Enterprise Resource Platform / Product Lifecycle Platform + Product Information Platform ingest
+both pipelines complete"]
+        SLV["Silver — Conform
+Enterprise Resource Platform / Product Lifecycle Platform buy-side
+Product Information Platform attributes and hierarchy
+both governed"]
+        GLD["Gold — Analytics
+Enterprise Resource Platform / Product Lifecycle Platform tables only
+Product Information Platform NOT yet in Gold
+No Consumer Analytics Data Product layer"]
+    end
+
+    subgraph STORES["aggregation-service-fed squad stores"]
+        DOCDB["Document Database
+Consumer Teams A and B
+full Product Aggregation Service product record"]
+        RDB["Relational Database
+Time-series extension
+Consumer Team C"]
+        SEARCHIDX["Search Platform
+Consumer Team A text matching"]
+    end
+
+    subgraph DS["DS consumption — dual source pattern"]
+        CTA["Consumer Team A
+Analytics Platform Gold plus Document Database"]
+        CTB["Consumer Team B
+Analytics Platform Gold plus Document Database"]
+        CTC["Consumer Team C
+Analytics Platform Gold plus Relational Database"]
+    end
+
+    PIP --> EPA & NAV
+    EPA & NAV & INV & PRICE & PROMO & REV & WINE --> AGG
+    PIP & ERP --> BRZ
+    BRZ --> SLV --> GLD
+    AGG -->|"Event Streaming Platform plus batch"| DOCDB
+    AGG -->|"API"| RDB
+    DOCDB -->|"populates"| SEARCHIDX
+    GLD --> CTA & CTB & CTC
+    DOCDB --> CTA & CTB
+    RDB -->|"daily volume export"| CTC
+
+    style PIP fill:#1e3d59,stroke:#152b40,color:#fff
+    style ERP fill:#1565c0,stroke:#0d47a1,color:#fff
+    style AGG fill:#c0392b,stroke:#a93226,color:#fff
+    style EPA fill:#546e7a,stroke:#37474f,color:#fff
+    style NAV fill:#546e7a,stroke:#37474f,color:#fff
+    style INV fill:#546e7a,stroke:#37474f,color:#fff
+    style PRICE fill:#546e7a,stroke:#37474f,color:#fff
+    style PROMO fill:#546e7a,stroke:#37474f,color:#fff
+    style REV fill:#546e7a,stroke:#37474f,color:#fff
+    style WINE fill:#546e7a,stroke:#37474f,color:#fff
+    style BRZ fill:#bf360c,stroke:#8d0000,color:#fff
+    style SLV fill:#37474f,stroke:#1a2329,color:#fff
+    style GLD fill:#f57f17,stroke:#e65100,color:#fff
+    style DOCDB fill:#7d3c98,stroke:#6c3483,color:#fff
+    style RDB fill:#7d3c98,stroke:#6c3483,color:#fff
+    style SEARCHIDX fill:#7d3c98,stroke:#6c3483,color:#fff
+    </div>
+  </div>
+
+  <div class="table-wrap" style="margin-top:6px">
+    <table>
+      <thead><tr><th>Confirmed problem</th><th>Layer / location</th><th>Impact</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Product Information Platform in Silver but not Gold</strong></td>
+          <td>Analytics Platform Silver has Product Information Platform attributes and hierarchy. Analytics Platform Gold does not. No Silver-to-Gold promotion pipeline exists for Product Information Platform.</td>
+          <td>DS squads cannot consume Product Information Platform data from Analytics Platform Gold. They consume Product Information Platform-derived data from Document Database instead, via Product Aggregation Service's aggregation layer, acquiring Product Aggregation Service's artefacts (semantic mismatches, field encoding differences) when the governed version already exists in Silver.</td>
+        </tr>
+        <tr>
+          <td><strong>Operational domains absent from Analytics Platform entirely</strong></td>
+          <td>Price domain, Inventory, Promotions, Reviews, Specialist Product Domain exist only in Document Database and Relational Database via Product Aggregation Service. No Bronze ingest for these domains.</td>
+          <td>Any governed product analytical record in Analytics Platform Gold is structurally incomplete for DS model feature sets. Squads must use aggregation-service-fed stores for these attributes regardless of what Analytics Platform Gold eventually contains.</td>
+        </tr>
+        <tr>
+          <td><strong>No Consumer Analytics Data Product Gold layer</strong></td>
+          <td>Analytics Platform Gold has Enterprise Resource Platform / Product Lifecycle Platform buy-side tables but no unified, governed product analytical layer assembling all domains.</td>
+          <td>DS squads have no single governed product record to build models from. The dual Analytics Platform-plus-Product Aggregation Service-store consumption pattern is a consequence of this absence, not a design decision.</td>
+        </tr>
+        <tr>
+          <td><strong>DS consumption split not documented</strong></td>
+          <td>DS squads consume from both Analytics Platform Gold and their aggregation-service-fed stores but the field-level split — which features come from where — is not recorded.</td>
+          <td>Impossible to confirm which fields Q1 will find in Analytics Platform Gold without profiling squad model feature catalogues. Risk of building a Gold layer that duplicates what squads already consume from Analytics Platform rather than filling the actual gaps.</td>
+        </tr>
+        <tr>
+          <td><strong>Semantic mismatches in Product Aggregation Service-derived data</strong></td>
+          <td>Product Aggregation Service aggregates Product Information Platform-derived APIs alongside operational APIs. The resulting field values (e.g. <code>is_active</code>, <code>title</code>) reflect Product Aggregation Service's aggregation logic, not the authoritative source definitions in Analytics Platform Silver.</td>
+          <td>Model features trained on Product Aggregation Service snapshot values are inconsistent with Analytics Platform Silver values for the same fields. Confirmed for <code>is_active</code> and <code>title</code> in the field validation exercise.</td>
+        </tr>
+        <tr>
+          <td><strong>No Analytics Platform to Source Crosswalk</strong></td>
+          <td>No governed managed table maps Analytics Platform canonical Article IDs to Document Database <code>_id</code>, Product Aggregation Service product numbers or Relational Database product keys.</td>
+          <td>Joins between Analytics Platform Silver data and Product Aggregation Service-store data are unreliable. Leading-zero inconsistency confirmed between Consumer Team B snapshot and Analytics Platform values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- AO-1 -->
+<div class="phase-header ao1">
+  <h2>&#9201; Option AO-1 — Tactical governed bootstrap (DSO preferred route)</h2>
+  <p>Phase 2 · Two workstreams · Workstream 1: promote Analytics Platform Silver (Product Information Platform and Enterprise Resource Platform / Product Lifecycle Platform) to Consumer Analytics Data Product Gold · Workstream 2: Source B bootstrap for Bucket 3 fields only</p>
+</div>
+
+<section class="card" id="ao1">
+  <span class="badge ao1">AO-1 · Tactical · Phase 2</span>
+  <h2>Build Consumer Analytics Data Product Gold layer on Analytics Platform Silver foundation — two workstreams</h2>
+  <div class="option-meta">
+    <span>&#9201; Workstream 1: 2–6 weeks after Q1 (internal Analytics Platform work, indicative)</span>
+    <span>&#9201; Workstream 2: 6–12 weeks (depends on Q1 Bucket 3 scope)</span>
+    <span>&#128203; Both estimates low confidence until Q1 complete</span>
+    <span>&#9989; Workstream 1 has no external dependency</span>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-label">AO-1 — two workstreams. Workstream 1 is internal Analytics Platform Silver-to-Gold promotion. Workstream 2 is a new time-boxed Source B Bronze ingest for Bucket 3 fields only.</div>
+    <div class="mermaid">
+flowchart LR
+    subgraph AP["Analytics Platform — Data Processing Platform medallion data lake"]
+        subgraph SILVER["Silver — existing governed data"]
+            ERPS[("Enterprise Resource Platform / Product Lifecycle Platform
+buy-side data
+Fully governed")]
+            PIPS[("Product Information Platform attributes
+and hierarchy
+Fully governed
+Not yet in Gold")]
+        end
+        subgraph NEWBRONZE["Bronze — new ingest — Workstream 2 only"]
+            SRCB["Source B bootstrap
+New aggregation-service-sourced Bronze ingest
+Bucket 3 fields only
+Time-boxed EXIT via AO-2"]
+        end
+        subgraph CADP["Consumer Analytics Data Product — Gold — NEW"]
+            CW["Crosswalk managed table
+Article ID to all source keys"]
+            DSP[("Consumer Analytics Optimised
+Unified product managed table")]
+            CV["Compatibility View
+per squad
+EXIT 3 months post AO-2"]
+            OP1["OP-01 Current Product
+Article grain"]
+            OP2["OP-02 Daily History
+daily snapshot scheduled"]
+            OP3["OP-03 Identifier Map"]
+        end
+        ERPS -->|"WS1a — surface
+existing Gold tables"| DSP
+        PIPS -->|"WS1b — promote
+Silver to Gold"| DSP
+        SRCB -.->|"WS2 — Bucket 3 only
+EXIT when AO-2 covers field"| DSP
+        CW --> DSP
+        DSP --> CV & OP1 & OP2 & OP3
+    end
+    DS["DS Consumers
+all squads"]
+    CV & OP1 & OP2 & OP3 --> DS
+    style ERPS fill:#37474f,stroke:#1a2329,color:#fff
+    style PIPS fill:#37474f,stroke:#1a2329,color:#fff
+    style SRCB fill:#e64a19,stroke:#bf360c,color:#fff
+    style CW fill:#546e7a,stroke:#37474f,color:#fff
+    style DSP fill:#1b5e20,stroke:#155a20,color:#fff
+    style CV fill:#2e86c1,stroke:#2874a6,color:#fff
+    style OP1 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style OP2 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style OP3 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    </div>
+  </div>
+
+  <div class="ws-grid">
+    <div class="ws-card fast">
+      <h4>&#9312; Workstream 1 — Silver to Gold promotion</h4>
+      <p>Surface Enterprise Resource Platform / Product Lifecycle Platform Gold tables and promote Product Information Platform Silver data into the new Consumer Analytics Optimised Gold managed table. Add managed-table quality constraints, Platform Data Catalogue lineage, Crosswalk managed table, and a daily history snapshot scheduler. Build Compatibility Views per squad. This is entirely internal Analytics Platform Data Processing Platform work — no external team, no Bronze ingest, no interface negotiation. The governed data already exists in Silver; the work is making it consumable from Gold.</p>
+      <div class="ws-meta">No external dependency &nbsp;·&nbsp; Highest delivery confidence &nbsp;·&nbsp; Covers Buckets 1 and 2</div>
+    </div>
+    <div class="ws-card mid">
+      <h4>&#9313; Workstream 2 — Source B bootstrap for Bucket 3</h4>
+      <p>For fields Q1 confirms are absent from Analytics Platform entirely (Bucket 3 — Price domain, Inventory, Promotions, Reviews, Specialist Product Domain), establish a new time-boxed Bronze ingest from Product Aggregation Service as a bootstrap. This is a new Bronze landing pipeline — not an existing connection. Bronze → Silver conform jobs add quality controls and lineage. The bootstrap is explicitly scoped to Bucket 3 fields confirmed by Q1, carries mandatory exit conditions, and is retired field by field as AO-2 delivers authoritative domain feeds.</p>
+      <div class="ws-meta">New Product Aggregation Service Bronze ingest required &nbsp;·&nbsp; Medium confidence &nbsp;·&nbsp; Covers Bucket 3 only &nbsp;·&nbsp; Mandatory exit conditions</div>
+    </div>
+  </div>
+
+  <div class="exit-box">
+    <strong>&#128680; Mandatory exit conditions — agreed in writing before Workstream 2 is activated</strong><br><br>
+    <strong>Source B Bronze bootstrap (Workstream 2):</strong> Retires field by field as AO-2 delivers authoritative domain Bronze feeds for those fields and they are validated in Silver. Owner: Data Engineering Manager. Maximum: 6 months per field from activation. Architecture review triggered automatically if not retired by deadline.<br><br>
+    <strong>Compatibility Views (Gold):</strong> Retire when each DS squad's model pipelines complete migration to AO-2 output port contracts. Owner: named DS squad lead per squad. Maximum: 3 months from AO-2 delivery date.<br><br>
+    <strong>Consumer Analytics Optimised Gold table:</strong> Not retired — promoted to AO-2 assembly output. Must be designed AO-2 compatible from day one.
+  </div>
+
+  <h3>Trade-offs</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:50%">&#10003; Advantages</th><th style="width:50%">&#10007; Limitations / Risks</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pro">Workstream 1 deliverable within weeks — no external dependency.</span> Product Information Platform Silver and Enterprise Resource Platform / Product Lifecycle Platform Gold data already exist and are governed in Analytics Platform. The work is creating the Gold managed table, adding quality constraints, and scheduling the daily snapshot. One data engineer with Analytics Platform access.</td><td><span class="con">Bucket 1 and 2 coverage is unknown until Q1 completes.</span> If Q1 reveals Enterprise Resource Platform / Product Lifecycle Platform Gold and Product Information Platform Silver together cover most of the required fields, Workstream 2 scope is small. If they cover few, the Source B bootstrap scope is larger and carries more Product Aggregation Service artefact risk.</td></tr>
+        <tr><td><span class="pro">Product Information Platform Gold promotion resolves the most impactful gap without new ingestion.</span> DS squads may be unnecessarily pulling Product Information Platform-derived data from Document Database when the governed version is already in Analytics Platform Silver. Workstream 1 makes it directly consumable.</td><td><span class="con">Workstream 2 Source B bootstrap carries Product Aggregation Service aggregation artefacts.</span> Price domain, Inventory, Promotions and Reviews data sourced from Product Aggregation Service carries Product Aggregation Service's field naming and value encoding. Semantic mismatches must be documented before promotion to Silver. <code>is_active</code> and <code>title</code> mismatches are confirmed — others are likely.</td></tr>
+        <tr><td><span class="pro">The AO-2 durable path is built in parallel.</span> The Source B bootstrap in Workstream 2 is a temporary placeholder that AO-2 domain feeds retire. Consumer Analytics Optimised Gold is designed to swap in authoritative Silver sources as they arrive — no rebuild.</td><td><span class="con">Workstream 2 Source B bootstrap is a NEW Bronze ingest from Product Aggregation Service.</span> This is not an existing connection — it requires a new Bronze landing pipeline to be built and Product Aggregation Service's cooperation. This is different from previous versions which incorrectly described an existing Document Database→Analytics Platform connection.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Rationale</h3>
+  <p>AO-1 is the recommended Phase 2 approach. Workstream 1 is the fastest confirmed delivery path in the programme — it requires no external team, no new Bronze ingest, and no interface negotiation. The Product Information Platform Silver-to-Gold promotion alone may cover a substantial portion of the required field set without any Source B work. Q1 is the essential prerequisite: until Bucket 1, Bucket 2 and Bucket 3 are defined, the scope of Workstream 2 and the entire AO-2 programme is unknown.</p>
+</section>
+
+<!-- AO-2 -->
+<div class="phase-header ao2">
+  <h2>&#127775; Option AO-2 — Authoritative bulk domain feeds (Recommended baseline)</h2>
+  <p>Phase 3 · Direct feeds from Pricing, Inventory, Promotions, Reviews into Analytics Platform Bronze → Silver → Gold · Retires Source B bootstrap field by field</p>
+</div>
+
+<section class="card" id="ao2">
+  <span class="badge ao2">AO-2 · Recommended baseline · Phase 3</span>
+  <h2>Authoritative domain feeds into Analytics Platform Bronze — Bucket 3 fields sourced correctly</h2>
+  <div class="option-meta">
+    <span>&#9201; 8–16 weeks per domain (medium confidence — depends on Q3)</span>
+    <span>&#128295; Medium effort per domain</span>
+    <span>&#9989; Low risk — producer-owned exports</span>
+    <span>&#128203; Prerequisite: Q2 + Q3 per domain</span>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-label">AO-2 — Bucket 3 authoritative domain feeds bypass Product Aggregation Service, enter Analytics Platform Bronze, conform to Silver, surface in Consumer Analytics Data Product Gold alongside existing Source A Silver data</div>
+    <div class="mermaid">
+flowchart LR
+    subgraph AUTH["Authoritative domain systems — Bucket 3"]
+        PR["Pricing system
+Price domain
+Owner: Pricing team"]
+        IV["Inventory system
+stock and saleability
+Owner: Inventory team"]
+        PM["Promotions system
+Owner: Promotions team"]
+        RV["Reviews system
+Reviews Platform or source
+Owner: Digital team"]
+    end
+
+    subgraph AP["Analytics Platform — Data Processing Platform medallion data lake"]
+        BRZ[("Bronze
+New domain feeds land here
+Immutable managed
+Retained for history")]
+        SLV[("Silver — Conform
+Existing: Enterprise Resource Platform / Product Lifecycle Platform and Product Information Platform
+New: Pricing Inventory
+Promotions Reviews
+All assembled here")]
+        CADP[("Consumer Analytics Data Product — Gold
+Consumer Analytics Optimised
+Full product record
+Output ports")]
+    end
+
+    subgraph PORTS["Gold output ports"]
+        OP1["OP-01 Current Product"]
+        OP2["OP-02 Daily History"]
+        OP3["OP-03 Identifier Map"]
+    end
+
+    DS["DS Consumers
+all squads"]
+
+    PR -->|"bulk export
+producer SLA"| BRZ
+    IV -->|"bulk export"| BRZ
+    PM -->|"bulk export"| BRZ
+    RV -->|"bulk export"| BRZ
+    BRZ --> SLV --> CADP
+    CADP --> OP1 & OP2 & OP3
+    OP1 & OP2 & OP3 --> DS
+
+    style PR fill:#1e3d59,stroke:#152b40,color:#fff
+    style IV fill:#1e3d59,stroke:#152b40,color:#fff
+    style PM fill:#1e3d59,stroke:#152b40,color:#fff
+    style RV fill:#1e3d59,stroke:#152b40,color:#fff
+    style BRZ fill:#bf360c,stroke:#8d0000,color:#fff
+    style SLV fill:#37474f,stroke:#1a2329,color:#fff
+    style CADP fill:#1b5e20,stroke:#155a20,color:#fff
+    style OP1 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style OP2 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style OP3 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    </div>
+  </div>
+
+  <h3>Description</h3>
+  <p>AO-2 replaces the Workstream 2 Source B bootstrap for each Bucket 3 field by going directly to the authoritative system for that domain — bypassing Product Aggregation Service entirely. Pricing data comes from the Pricing system, not from Product Aggregation Service's Price API aggregation. Inventory/stock data from the Inventory system. Promotions from the Promotions system. Reviews from Reviews Platform or the authoritative review source. Each domain produces a bulk export landing in Analytics Platform Bronze as a new immutable managed table. Bronze files are retained, giving Analytics Platform the full daily product history for model back-testing by design. Silver conform data-processing jobs join the new domain Bronze tables with the existing Enterprise Resource Platform / Product Lifecycle Platform and Product Information Platform Silver tables to assemble the complete product record. The assembled Silver feeds the Consumer Analytics Optimised Gold layer, and the Source B Product Aggregation Service bootstrap is retired for that domain once its AO-2 Silver data is validated. Enterprise Resource Platform / Product Lifecycle Platform and Product Information Platform are already in Silver and do not require AO-2 work — they are carried forward from Workstream 1 and enriched by the incoming domain data.</p>
+
+  <div class="callout warn">
+    <strong>Product Aggregation Service bootstrap bridge per domain:</strong> If Q3 confirms that a Bucket 3 domain cannot produce a direct Bronze export in the AO-2 timeframe, the Workstream 2 aggregation-service-sourced Bronze bootstrap remains active for that domain until the authoritative export is ready. This is not a failure of AO-2 — it is the expected incremental transition. The Source B bootstrap exit condition clock runs from Workstream 2 activation regardless of when AO-2 covers the domain.
+  </div>
+
+  <h3>Trade-offs</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:50%">&#10003; Advantages</th><th style="width:50%">&#10007; Limitations / Risks</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pro">Eliminates Product Aggregation Service aggregation artefacts from Silver.</span> Each Bucket 3 field in Silver traces to the authoritative domain system, not Product Aggregation Service's aggregated representation. Pricing, inventory and promotions data carry their owning system's quality guarantees.</td><td><span class="con">Domain system delivery dependency.</span> Each domain platform team must build and maintain a Bronze export. Q3 must confirm feasibility before AO-2 is committed per domain. Pricing, Inventory, Promotions and Reviews interfaces are currently unvalidated.</td></tr>
+        <tr><td><span class="pro">Full Bronze-retained history by design.</span> Bronze managed tables are immutable and retained. 2–3 year daily history for model back-testing is a structural property, not an afterthought.</td><td><span class="con">Silver assembly logic becomes Analytics Platform's responsibility.</span> The join across Product Information Platform, Enterprise Resource Platform / Product Lifecycle Platform, Pricing, Inventory and Promotions that Product Aggregation Service currently performs moves into Analytics Platform Silver conform data-processing jobs. Bounded engineering work, but real.</td></tr>
+        <tr><td><span class="pro">Correct authority model established permanently.</span> Each field in Silver traces to its owning system. Data quality accountability sits with the right team.</td><td><span class="con">Incremental by domain.</span> Domains are not all ready simultaneously. The Source B Product Aggregation Service bootstrap remains active for slower domains, creating a mixed-governance Silver period.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Rationale</h3>
+  <p>AO-2 is the recommended strategic baseline for Bucket 3 fields. Note that Product Information Platform and Enterprise Resource Platform / Product Lifecycle Platform — the two richest Source A domains — are already in Analytics Platform Silver and require no AO-2 ingestion work. AO-2 is scoped exclusively to the operational domains currently absent from Analytics Platform (Price domain, Inventory, Promotions, Reviews, Specialist Product Domain). Domain sequencing should follow Q3 results — whichever domain can produce a validated Bronze export earliest is onboarded first, retiring the corresponding Source B bootstrap fields.</p>
+</section>
+
+<!-- AO-3 -->
+<div class="phase-header ao3">
+  <h2>&#127919; Option AO-3 — Hybrid batch plus selective CDC into Bronze</h2>
+  <p>Phase 4 · Extends AO-2 where Q4 confirms a sub-daily freshness requirement · Silver batch always the reconciliation baseline</p>
+</div>
+
+<section class="card" id="ao3">
+  <span class="badge ao3">AO-3 · Strategic extension · Phase 4</span>
+  <h2>Retain AO-2 batch Bronze baseline; add selective CDC for confirmed freshness requirements only</h2>
+  <div class="option-meta">
+    <span>&#9201; 9–18 months (low confidence)</span>
+    <span>&#128295; High Streaming Processing Framework effort per domain</span>
+    <span>&#9888; Risk: building CDC without confirmed freshness need</span>
+    <span>&#128203; Gate: AO-2 stable + Q4 confirmed + Q3 CDC interface confirmed</span>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-label">AO-3 — AO-2 daily batch Bronze always retained as Silver reconciliation baseline; CDC events added selectively, evidence-gated</div>
+    <div class="mermaid">
+flowchart LR
+    subgraph DOMAIN["Domain systems"]
+        BATCH["AO-2 authoritative
+bulk exports
+daily completeness"]
+        EVIDENCE["Q4 confirmed
+freshness requirement
+named business owner"]
+        CDC["CDC or event feed
+specific domain only
+Q3 and Q4 confirmed"]
+    end
+    subgraph AP["Analytics Platform — Data Processing Platform medallion data lake"]
+        BRZ[("Bronze
+Batch managed files
+and CDC events
+same Bronze layer")]
+        SLV[("Silver — Conform
+Batch Silver authoritative
+for deduplication
+CDC merged via Streaming Processing Framework")]
+        CADP[("Consumer Analytics Data Product Gold
+Consumer Analytics Optimised
+Output ports")]
+    end
+    DS["DS Consumers"]
+    BATCH -->|"daily batch
+completeness"| BRZ
+    EVIDENCE -->|"evidence gate
+before adding CDC"| CDC
+    CDC -->|"selective Bronze events
+where justified"| BRZ
+    BRZ --> SLV --> CADP --> DS
+    style BATCH fill:#1e3d59,stroke:#152b40,color:#fff
+    style EVIDENCE fill:#e64a19,stroke:#bf360c,color:#fff
+    style CDC fill:#f57c00,stroke:#e65100,color:#fff
+    style BRZ fill:#bf360c,stroke:#8d0000,color:#fff
+    style SLV fill:#37474f,stroke:#1a2329,color:#fff
+    style CADP fill:#1b5e20,stroke:#155a20,color:#fff
+    </div>
+  </div>
+
+  <h3>Description</h3>
+  <p>AO-3 extends AO-2 — it does not replace it. The AO-2 daily batch Bronze feeds and Silver conform pipeline remain the completeness and reconciliation baseline. CDC or event streams are added one domain at a time, only where Q4 confirms a specific DS use case with a confirmed freshness requirement below daily batch, and Q3 confirms the upstream domain produces a reliable, documented CDC interface. All CDC events land in Analytics Platform Bronze alongside batch files — the same Bronze managed table with a source type column. Silver Streaming Processing Framework jobs merge and deduplicate with batch Silver values authoritative for reconciliation. Current DS requirements are batch-oriented; no confirmed sub-daily requirement has been documented. AO-3 must not be built without Q4 evidence.</p>
+
+  <h3>Trade-offs</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:50%">&#10003; Advantages where freshness is confirmed</th><th style="width:50%">&#10007; Limitations and risks</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pro">Price, stock and promotional changes in Analytics Platform Gold within minutes</span> where the upstream domain CDC is confirmed and Q4 justifies it.</td><td><span class="con">Significant Streaming Processing Framework engineering per domain.</span> Bootstrap, ordering, deduplication, tombstones, late-arrival correction and replay must be designed explicitly — not Analytics Platform configuration defaults.</td></tr>
+        <tr><td><span class="pro">Silver batch corrects CDC failures silently.</span> Late and out-of-order events are reconciled at each daily batch cycle. Gold does not accumulate silent errors.</td><td><span class="con">Risk of over-engineering.</span> The Q4 evidence gate must be enforced by the Product Owner. CDC must not be added for engineering interest alone.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- TRANSITION TECHNIQUES -->
+<div class="phase-header trans">
+  <h2>&#128280; Transition Techniques — not target architectures</h2>
+  <p>Time-limited mechanisms used during migration · Named owner, maximum duration and decommissioning criterion required in writing before activation</p>
+</div>
+
+<section class="card" id="techniques">
+  <span class="badge trans">Transition techniques</span>
+  <h2>Source B Product Aggregation Service Bronze bootstrap, Gold compatibility views</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Technique</th><th>Analytics Platform layer</th><th>When appropriate</th><th>Key constraint</th><th>Exit condition</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Source B Product Aggregation Service Bronze bootstrap</strong><br>(Workstream 2)</td>
+          <td>Bronze → Silver (governed)</td>
+          <td>AO-1 Workstream 2 only — for Bucket 3 fields confirmed absent from Analytics Platform by Q1. A new Bronze ingest pipeline is built from Product Aggregation Service. This is not an existing connection. Product Aggregation Service's multi-API aggregation means the data carries multiple upstream artefacts — semantic mismatches must be documented before Silver promotion.</td>
+          <td>Product Aggregation Service is not authoritative for any domain. The Source B bootstrap is a pragmatic bridge, not a validated source. <code>is_active</code> and <code>title</code> mismatches are confirmed. Residual Product Aggregation Service artefacts for other fields must be assessed during Workstream 2 delivery. Q2 must confirm the authoritative system for each Bucket 3 field before the AO-2 replacement feed is designed.</td>
+          <td>Field by field as AO-2 authoritative domain Silver data is validated. Owner: Data Engineering Manager. Maximum: 6 months per field. Architecture review if not retired.</td>
+        </tr>
+        <tr>
+          <td><strong>Gold compatibility views</strong></td>
+          <td>Gold — Consumer Analytics Data Product</td>
+          <td>DS squad migration from aggregation-service-fed stores (Document Database, Relational Database) to AO-2 Gold output port contracts. Preserves the field shape squads currently expect without requiring immediate model pipeline rewrites.</td>
+          <td>Not a permanent contract. DS squads remaining on the compatibility view do not receive the full governance value of the output port model. Named squad lead and mandatory decommission date required per view before the view is created.</td>
+          <td>Retires when each squad completes migration to AO-2 Gold output port contracts. Owner: named DS squad lead per squad. Maximum: 3 months from AO-2 delivery. No extensions without Product Owner sign-off.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- COMPARISON MATRIX -->
+<section class="card" id="comparison">
+  <div class="kicker">Decision support</div>
+  <h2>Options comparison matrix</h2>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Runtime Product Aggregation Service dependency and upstream team delivery dependency are separate measures. All estimates are indicative with the confidence levels noted.</p>
+  <div class="comp-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Option</th>
+          <th>Indicative delivery &#42;</th>
+          <th>Effort</th>
+          <th>Product Aggregation Service runtime dependency</th>
+          <th>Upstream team delivery dependency</th>
+          <th>Product Information Platform in Analytics Platform Gold</th>
+          <th>Bucket 3 coverage</th>
+          <th>History support</th>
+          <th>Governance quality</th>
+          <th>Strategic alignment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>As-Is</strong></td>
+          <td class="cell-bad">Active (broken)</td>
+          <td class="cell-na">—</td>
+          <td class="cell-bad">High — 3 squads</td>
+          <td class="cell-na">—</td>
+          <td class="cell-bad">No</td>
+          <td class="cell-bad">Document Database and Relational Database only</td>
+          <td class="cell-bad">None in Analytics Platform Gold</td>
+          <td class="cell-bad">None</td>
+          <td class="cell-bad">None</td>
+        </tr>
+        <tr>
+          <td><strong>AO-1</strong> Tactical bootstrap<br><em style="font-size:11px">Recommended Phase 2</em></td>
+          <td class="cell-good">WS1: 2–6 wks<br>WS2: 6–12 wks</td>
+          <td class="cell-good">WS1: Low<br>WS2: Medium</td>
+          <td class="cell-good">WS1: None<br>WS2: New Product Aggregation Service Bronze ingest — runtime dependency introduced then retired</td>
+          <td class="cell-good">WS1: None<br>WS2: Product Aggregation Service team cooperation for new Bronze ingest</td>
+          <td class="cell-good">Yes — WS1 promotes Product Information Platform Silver to Gold</td>
+          <td class="cell-warn">Product Aggregation Service bootstrap — carries Product Aggregation Service artefacts. Time-boxed bridge only.</td>
+          <td class="cell-warn">Gold daily snapshot must be designed in</td>
+          <td class="cell-warn">WS1: fully governed. WS2: partial — Product Aggregation Service artefacts documented</td>
+          <td class="cell-good">High — AO-2 compatible by design</td>
+        </tr>
+        <tr>
+          <td><strong>AO-2</strong> Authoritative domain feeds<br><em style="font-size:11px">Recommended baseline &#11088;</em></td>
+          <td class="cell-warn">8–16 wks per domain</td>
+          <td class="cell-warn">Medium per domain</td>
+          <td class="cell-good">None — domain feeds bypass Product Aggregation Service</td>
+          <td class="cell-warn">Medium — domain teams must build and maintain Bronze exports</td>
+          <td class="cell-good">Yes — promoted in AO-1 WS1</td>
+          <td class="cell-good">Authoritative sources — no Product Aggregation Service artefacts</td>
+          <td class="cell-good">Bronze retained by design</td>
+          <td class="cell-good">Highest — domain-owned accountability</td>
+          <td class="cell-good">Highest — correct medallion pattern</td>
+        </tr>
+        <tr>
+          <td><strong>AO-3</strong> Hybrid batch + selective CDC<br><em style="font-size:11px">Conditional on Q4</em></td>
+          <td class="cell-bad">9–18 months</td>
+          <td class="cell-bad">High per CDC domain</td>
+          <td class="cell-good">None</td>
+          <td class="cell-bad">High — multiple upstream CDC teams</td>
+          <td class="cell-good">Yes</td>
+          <td class="cell-good">Authoritative — AO-2 covers all</td>
+          <td class="cell-good">Bronze batch retained as baseline</td>
+          <td class="cell-good">High — Silver batch corrects CDC gaps</td>
+          <td class="cell-good">Highest — selective, evidence-gated</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-top:6px">&#42; Indicative — medium-low confidence until Q1 complete. &#11088; = recommended strategic baseline.</p>
+</section>
+
+<!-- RECOMMENDED PATH -->
+<section class="card" id="recommended">
+  <div class="kicker">Architecture recommendation</div>
+  <h2>Recommended decision</h2>
+  <div class="callout good">
+    <strong>Start Phase 1 immediately — it is entirely within Analytics Platform.</strong> Run AO-1 Workstream 1 (Product Information Platform Silver-to-Gold promotion + Enterprise Resource Platform / Product Lifecycle Platform Gold extension) as soon as Q1 confirms the Bucket 1 and 2 field lists. This has no external dependency and is the fastest confirmed delivery in the programme. Scope Workstream 2 strictly to Q1's Bucket 3 confirmed fields. Target AO-2 authoritative domain feeds for all Bucket 3 fields as the durable baseline.
+  </div>
+
+  <div class="table-wrap" style="margin-top:18px">
+    <table>
+      <thead><tr><th>Phase</th><th>Action</th><th>Gate</th><th>Owner</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Now</strong></td>
+          <td>Q1: Profile all required fields against Analytics Platform Gold and Silver — three buckets. Document DS squad consumption split from model feature catalogues. Run Q2–Q4 concurrently. This is entirely within Analytics Platform — no external dependency.</td>
+          <td>None.</td>
+          <td>Data Solutions Architect + Data Engineer with Analytics Platform access</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 2<br>Wks 2–6 &#42;</strong></td>
+          <td>AO-1 Workstream 1: Build Consumer Analytics Optimised Gold managed table. Promote Product Information Platform Silver to Gold. Surface Enterprise Resource Platform / Product Lifecycle Platform Gold. Add managed-table quality constraints, Platform Data Catalogue lineage, Crosswalk managed table, daily history snapshot scheduler. Build Compatibility Views per squad.</td>
+          <td>Q1 Bucket 1 and Bucket 2 field lists confirmed. No external dependencies.</td>
+          <td>Data Engineering Manager. Data Engineer (Analytics Platform Gold layer build).</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 2<br>Wks 6–12 &#42;</strong></td>
+          <td>AO-1 Workstream 2: For Q1 Bucket 3 fields only, establish new aggregation-service-sourced Bronze ingest bootstrap. Bronze → Silver with quality rules and lineage. Document Product Aggregation Service artefacts per field. Enforce exit conditions in writing before activation.</td>
+          <td>Q1 Bucket 3 field list confirmed. Q2 source authority register complete. Exit conditions signed off by named owners before any Bronze bootstrap activated.</td>
+          <td>Data Engineering Manager (exit condition owner). DS squad leads (Compatibility View exit date sign-off).</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 3<br>Month 3–9 &#42;</strong></td>
+          <td>AO-2: Onboard Pricing, Inventory, Promotions and Reviews Bronze exports domain by domain per Q3. Bronze → Silver conform. Retire Workstream 2 Product Aggregation Service bootstrap per field as AO-2 Silver data is validated. Migrate DS consumers to Gold output port contracts.</td>
+          <td>Q3 interface confirmed per domain. DS squad migration plan agreed with squad leads.</td>
+          <td>Data Engineering Manager. Domain platform leads (Bronze export SLA). DS squad leads (migration).</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 4<br>Month 9+ &#42;</strong></td>
+          <td>AO-3: For any domain where Q4 confirms a specific sub-daily freshness requirement — design Streaming Processing Framework Bronze CDC for that domain. Retain AO-2 batch Silver as reconciliation baseline always.</td>
+          <td>AO-2 stable. Q4 freshness confirmed with named business owner. Q3 CDC interface confirmed.</td>
+          <td>Product Owner (freshness approval). Data Solutions Architect (Streaming design).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--muted)">&#42; Indicative only — depends on Q1 outputs.</p>
+  <div class="callout warn" style="margin-top:18px">
+    <strong>For the Data Engineering Manager:</strong> Workstream 1 (Product Information Platform Silver-to-Gold promotion) can begin in week 2 of the programme for any field Q1 confirms is in Bucket 2. One data engineer with Analytics Platform Data Processing Platform access. No upstream team, no Bronze pipeline, no interface negotiation. The Product Information Platform Gold promotion alone may eliminate the need for a significant portion of the Workstream 2 Source B bootstrap — reducing the Product Aggregation Service dependency the programme introduces.
+  </div>
+</section>
+
+<!-- EVIDENCE REGISTER -->
+<section class="card" id="register">
+  <div class="kicker">Governance artefact</div>
+  <h2>Evidence, assumption and decision register</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:5%">Ref</th>
+          <th style="width:40%">Claim</th>
+          <th style="width:10%">Type</th>
+          <th style="width:30%">Validation or decision needed</th>
+          <th style="width:15%">Owner</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="register-row confirmed">
+          <td>E-01</td>
+          <td>Analytics Platform is the organisation's Data Processing Platform medallion analytical data lake operating Bronze → Silver → Gold pipeline architecture.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-02</td>
+          <td>Enterprise Resource Platform / Product Lifecycle Platform buying and merchandising data flows through the complete Analytics Platform Bronze → Silver → Gold pipeline. Source A Gold tables are consumed by DS squads today.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-03</td>
+          <td>Product Information Platform product attributes (via Product Content API pathway) and category hierarchy (via Category API pathway) flow through a complete Analytics Platform Bronze → Silver pipeline. Product Information Platform is in Analytics Platform Silver.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-04</td>
+          <td>Product Information Platform data has NOT been promoted from Silver to Gold. DS squads cannot consume Product Information Platform product data from Analytics Platform Gold today despite it being governed in Silver.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-05</td>
+          <td>Price domain, Inventory, Promotions, Reviews and Specialist Product Domain are absent from Analytics Platform entirely. They exist only in Document Database (via Product Aggregation Service Event Streaming Platform/batch) and Relational Database with time-series extension (via Product Aggregation Service API).</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-06</td>
+          <td>Document Database has no connection to Analytics Platform Bronze or Silver. The Document Database-to-Analytics Platform data path is an out-of-scope analytical shortcut used for DS model back-training outside the medallion governance chain.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-07</td>
+          <td>DS squads consume from both Analytics Platform Gold (Enterprise Resource Platform / Product Lifecycle Platform tables) and their aggregation-service-fed stores (Document Database for Consumer Teams A and B, Relational Database for Consumer Team C). The field-level split is not currently documented.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>Q1 must document the consumption split from DS squad model feature catalogues.</td>
+          <td>Q1 · Data Engineer</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-08</td>
+          <td>Product Aggregation Service aggregates multiple upstream APIs: Enriched Product (Product Information Platform-derived), Navigation (Product Information Platform-derived), Inventory, Price domain, Promotions, Reviews, Specialist Product Domain. Product Aggregation Service is not authoritative for any single domain.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr class="register-row confirmed">
+          <td>E-09</td>
+          <td>DS requirements are predominantly batch-oriented. No confirmed sub-daily freshness requirement has been documented for any DS use case.</td>
+          <td><span class="tag c">Confirmed</span></td>
+          <td>Formal per-attribute confirmation outstanding — see D-05.</td>
+          <td>D-05</td>
+        </tr>
+        <tr class="register-row assumption">
+          <td>A-01</td>
+          <td>The combination of Enterprise Resource Platform / Product Lifecycle Platform Gold and Product Information Platform Silver (once promoted to Gold) covers a substantial portion of the required DS field set, materially reducing the Workstream 2 Source B bootstrap scope.</td>
+          <td><span class="tag a">Assumption</span></td>
+          <td>Q1: Three-bucket field coverage analysis. This is the most impactful unknown — if Buckets 1 and 2 are large, Workstream 2 scope is small and the programme moves quickly. If they are small, Workstream 2 and AO-2 carry more weight.</td>
+          <td>Phase 1 · Data Engineer</td>
+        </tr>
+        <tr class="register-row assumption">
+          <td>A-02</td>
+          <td>Pricing, Inventory, Promotions and Reviews systems can each produce a bulk export suitable for Analytics Platform Bronze ingestion as part of AO-2.</td>
+          <td><span class="tag a">Assumption</span></td>
+          <td>Q3: Engagement with each domain platform team. If a domain cannot produce a Bronze export, the AO-1 Workstream 2 Product Aggregation Service bootstrap remains active for that domain beyond its intended window.</td>
+          <td>Phase 1 · Domain platform teams</td>
+        </tr>
+        <tr class="register-row assumption">
+          <td>A-03</td>
+          <td>the agreed historical period of daily product history is the confirmed requirement for all DS squads.</td>
+          <td><span class="tag a">Assumption</span></td>
+          <td>Stated in requirements sessions but not formally approved per squad per use case. Q4 should confirm retention period with named business owner. Determines Analytics Platform Bronze retention policy.</td>
+          <td>Product Owner + DS squad leads</td>
+        </tr>
+        <tr class="register-row assumption">
+          <td>A-04</td>
+          <td>All delivery timelines are indicative with medium-low confidence and depend on Q1 three-bucket results.</td>
+          <td><span class="tag a">Assumption</span></td>
+          <td>Treat all estimates as planning assumptions. The Q1 Bucket 1 and 2 coverage result is the single most impactful unknown for programme timeline and cost.</td>
+          <td>Data Engineering Manager</td>
+        </tr>
+        <tr class="register-row decision">
+          <td>D-01</td>
+          <td>Article ID formally approved as the canonical primary analytical grain for Consumer Analytics Data Product Gold output ports.</td>
+          <td><span class="tag d">Decision required</span></td>
+          <td>Architecture Decision Record with named approver. Blocks OP-01, OP-02, OP-03 Gold managed table schema design and Crosswalk table design.</td>
+          <td>Architecture board + Product Owner</td>
+        </tr>
+        <tr class="register-row decision">
+          <td>D-02</td>
+          <td>Named authoritative system confirmed for each Q1 Bucket 3 field before AO-2 Bronze pipelines are designed.</td>
+          <td><span class="tag d">Decision required</span></td>
+          <td>Q2 source authority register workshop. Without this, Product Aggregation Service API defaults as the AO-2 Bronze source — reintroducing Product Aggregation Service as a permanent architectural dependency rather than a bridge.</td>
+          <td>Architecture + domain data owners</td>
+        </tr>
+        <tr class="register-row decision">
+          <td>D-03</td>
+          <td>OP-04 (SKU-level Gold output port) confirmed in or out of MVP scope.</td>
+          <td><span class="tag d">Decision required</span></td>
+          <td>Currently "Validate MVP need." Blocks Gold table schema for OP-04.</td>
+          <td>Product Owner + DS Consumer Team B lead</td>
+        </tr>
+        <tr class="register-row decision">
+          <td>D-04</td>
+          <td>Business definition of <code>product_definition</code> agreed and source system identified.</td>
+          <td><span class="tag d">Decision required</span></td>
+          <td>Currently empty in both validation sample products. Required for Consumer Team C. Cannot be sourced into Analytics Platform until the business definition is agreed and Q2 identifies the source system.</td>
+          <td>Product Owner + Domain Data Owner</td>
+        </tr>
+        <tr class="register-row decision">
+          <td>D-05</td>
+          <td>Freshness requirement per attribute and DS use case confirmed with named business owner.</td>
+          <td><span class="tag d">Decision required</span></td>
+          <td>Q4. AO-3 Bronze CDC must not be built without at least one confirmed sub-daily requirement with a named business owner.</td>
+          <td>Product Owner + DS squad leads</td>
+        </tr>
+        <tr class="register-row decision">
+          <td>D-06</td>
+          <td>Named owners, maximum durations and decommissioning criteria agreed in writing before any Source B Product Aggregation Service Bronze bootstrap or Gold Compatibility View is activated.</td>
+          <td><span class="tag d">Decision required</span></td>
+          <td>Required before AO-1 Workstream 2 begins. Covers: Product Aggregation Service Bronze bootstrap per Bucket 3 field, Compatibility Views per squad.</td>
+          <td>Data Engineering Manager + DS squad leads + Product Owner</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout purple" style="margin-top:18px">
+    <strong>Document status at submission (v0.5):</strong> 9 confirmed facts, 4 assumptions requiring Phase 1 validation, 6 decisions required before architecture is committed. Ready for architecture governance review. Should not be treated as a delivery mandate until D-01, D-02 and D-06 are resolved and A-01 is confirmed by Phase 1 discovery.
+  </div>
+</section>
+
+</div>
+</body>
+</html>
